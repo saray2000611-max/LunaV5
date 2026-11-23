@@ -1,0 +1,30 @@
+name: Build Luna APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main", "master" ]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip project
+        run: unzip -q Luna-V5_4-SelfBuild.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Build
+        working-directory: Luna-Advanced
+        run: gradle assembleDebug --stacktrace
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          files: Luna-Advanced/app/build/outputs/apk/debug/app-debug.apk
